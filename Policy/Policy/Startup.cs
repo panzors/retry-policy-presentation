@@ -39,7 +39,7 @@ namespace WantACracker
             // set a normal connection
             services.AddHttpClient<NormalConnection>(client =>
             {
-                client.BaseAddress = new Uri("https://localhost:44310/");
+                client.BaseAddress = new Uri("https://localhost:5001/");
                 // Timeout set at 2 seconds for this example
                 client.Timeout = TimeSpan.FromMilliseconds(2000);
             });
@@ -48,13 +48,14 @@ namespace WantACracker
             var delay = Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromSeconds(1), retryCount: 5);
             services.AddHttpClient<ExponentialBackoffConnection>(client =>
             {
-                client.BaseAddress = new Uri("https://localhost:44310/");
+                client.BaseAddress = new Uri("https://localhost:5001/");
             }).AddTransientHttpErrorPolicy(builder => builder.WaitAndRetryAsync(delay));
+
 
             // set a circuit breaker policy
             services.AddHttpClient<CircuitBreakerConnection>(client =>
             {
-                client.BaseAddress = new Uri("https://localhost:44310/");
+                client.BaseAddress = new Uri("https://localhost:5001/");
             }).AddTransientHttpErrorPolicy(builder => builder.CircuitBreakerAsync(
                 5, // Tries before breaking 
                 TimeSpan.FromSeconds(20), // Break for this long
@@ -64,13 +65,37 @@ namespace WantACracker
             // set a standard retry policy
             services.AddHttpClient<RetryConnection>(client => 
             { 
-                client.BaseAddress = new Uri("https://localhost:44310/");
+                client.BaseAddress = new Uri("https://localhost:5001/");
             }).AddTransientHttpErrorPolicy(builder => builder.WaitAndRetryAsync(new[]
             {
                 TimeSpan.FromSeconds(1),
                 TimeSpan.FromSeconds(2),
                 TimeSpan.FromSeconds(3)
             }));
+
+            //var policy = Policy.Handle<HttpRequestException>()
+            //    .AdvancedCircuitBreakerAsync(
+            //    0.5, // 50% of calls success 
+            //    TimeSpan.FromSeconds(5),  // 10 second samples 
+            //    3, //minimum sample size
+            //    TimeSpan.FromSeconds(10), //duration of break
+            //     OnBreak,
+            //    OnReset);
+
+
+            services.AddSingleton<IRouter, Router>();
+            //services.AddSingleton<IRouter, Router>(provider => 
+            //{
+            //    var factory = provider.GetService<IHttpClientFactory>();
+            //    var log = provider.GetService<ILogger<Router>>();
+
+            //    return new Router(factory, log, policy);
+            //});
+        }
+
+        private void OnBreak(Exception arg1, TimeSpan arg2)
+        {
+            Log.Warning("Circuit breaker broken");
         }
 
         private void OnReset()
