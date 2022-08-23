@@ -24,10 +24,14 @@ Things to consider
 
 ## How to run this
 
-This is two separate projects [Server](./Server/) and [Policy](./Policy/) and you will need to run both for this to play around with.
+Open the [Soltuion](./Policy/Policy.sln) and the project should be configured to run the [Server](./Server/) without debugging and the [Policy](./Policy/) project with debugging.
 
 ### Requirements
 
-- c# dotnet
+- c# dotnet 5.0
 - browser
 - (optional) IDE
+
+## Notes from the author
+
+I'm sorry the naming conventions are a bit rough. This is only meant to be a quick demo.
