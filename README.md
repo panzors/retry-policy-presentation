@@ -14,7 +14,7 @@ The internet is a very wild and wacky place, we must all consider how to best me
 - Exponential retry policy
 - Circuit breaker
 
-Things to consider
+### Things to consider
 
 - Fallback values? Is your business comfortable with serving failures
 - Alternatives to use? EG, agnostic clients like payment service providers
@@ -25,6 +25,8 @@ Things to consider
 ## How to run this
 
 Open the [Soltuion](./Policy/Policy.sln) and the project should be configured to run the [Server](./Server/) without debugging and the [Policy](./Policy/) project with debugging.
+
+This project uses [Polly](https://github.com/App-vNext/Polly) as the foundation of this. It's a test-bed for experimentations and is not exhaustive.
 
 ### Requirements
 
