@@ -66,6 +66,14 @@ namespace WantACracker.Services
             throw new Exception();
         }
 
+        public async Task<bool> WakeUp()
+        {
+            // because this sleeps for 5 seconds in total, and the client timeout is configured, it should fail
+            var response = await _client.GetAsync($"/sleep/wakeup");
+            response.EnsureSuccessStatusCode();
+            return true;
+        }
+
         public virtual async Task<Cracker> Fail()
         {
             var message = await _client.GetAsync("/fail");

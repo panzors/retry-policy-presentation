@@ -16,6 +16,7 @@ using Polly;
 using System.Net.Http;
 using Polly.Contrib.WaitAndRetry;
 using Serilog;
+using Polly.Timeout;
 
 namespace WantACracker
 {
@@ -66,36 +67,21 @@ namespace WantACracker
             services.AddHttpClient<RetryConnection>(client => 
             { 
                 client.BaseAddress = new Uri("https://localhost:5001/");
-            }).AddTransientHttpErrorPolicy(builder => builder.WaitAndRetryAsync(new[]
+
+            }).AddTransientHttpErrorPolicy(builder => builder
+                .Or<TimeoutRejectedException>()
+                .OrResult(result => result.StatusCode == System.Net.HttpStatusCode.RequestTimeout)
+                .WaitAndRetryAsync(new[]
             {
                 TimeSpan.FromSeconds(1),
                 TimeSpan.FromSeconds(2),
                 TimeSpan.FromSeconds(3)
-            }));
+            }, (i, span) => {
+                Log.Information("Retry {i}:{span}", i, span);
+            }).WrapAsync(Policy.TimeoutAsync<HttpResponseMessage>(1)));
 
-            //var policy = Policy.Handle<HttpRequestException>()
-            //    .AdvancedCircuitBreakerAsync(
-            //    0.5, // 50% of calls success 
-            //    TimeSpan.FromSeconds(5),  // 10 second samples 
-            //    3, //minimum sample size
-            //    TimeSpan.FromSeconds(10), //duration of break
-            //     OnBreak,
-            //    OnReset);
-
-
+            // Create the traffic router
             services.AddSingleton<IRouter, Router>();
-            //services.AddSingleton<IRouter, Router>(provider => 
-            //{
-            //    var factory = provider.GetService<IHttpClientFactory>();
-            //    var log = provider.GetService<ILogger<Router>>();
-
-            //    return new Router(factory, log, policy);
-            //});
-        }
-
-        private void OnBreak(Exception arg1, TimeSpan arg2)
-        {
-            Log.Warning("Circuit breaker broken");
         }
 
         private void OnReset()
@@ -128,8 +114,6 @@ namespace WantACracker
             {
                 endpoints.MapControllers();
             });
-
-            
         }
     }
 }

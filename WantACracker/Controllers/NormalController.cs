@@ -40,5 +40,12 @@ namespace WantACracker.Controllers
         {
             return _server.Sleep(durationMs);
         }
+
+        [HttpGet]
+        [Route("wakeup")]
+        public Task<bool> WakeUp()
+        {
+            return _server.WakeUp();
+        }
     }
 }

@@ -45,6 +45,11 @@ namespace WantACracker.Controllers
             return _connection.FiftyFiftyUnsafe(failChance);
         }
 
-        
+        [HttpGet]
+        [Route("sleep")]
+        public Task<Cracker> Sleep(int sleepms = 1000)
+        {
+            return _connection.Sleep(sleepms);
+        }
     }
 }
